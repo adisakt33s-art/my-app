@@ -11,11 +11,11 @@ export default function Hero() {
         background: "radial-gradient(ellipse 60% 55% at 70% 50%, rgba(56,189,248,0.08) 0%, transparent 70%), radial-gradient(ellipse 40% 40% at 30% 60%, rgba(34,211,160,0.05) 0%, transparent 60%)",
       }} />
 
-      <div className="relative max-w-6xl mx-auto px-5 w-full pt-20 pb-16">
+      <div className="relative max-w-6xl mx-auto px-5 w-full pt-20 pb-16 flex flex-col items-center">
         <div className="flex flex-col md:flex-row items-center gap-12 md:gap-6">
 
           {/* Text */}
-          <div className="flex-1">
+         <div className="flex-1 text-center md:text-left">
             <p className="text-xs font-bold uppercase tracking-[0.2em] mb-6"
               style={{ color: "var(--blue)" }}>
               English Learning Platform

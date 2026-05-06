@@ -39,7 +39,7 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-wrap gap-4 items-center">
-              <Link href="/dashboard"
+              <Link href="/login"
                 className="inline-flex items-center gap-2 font-bold text-sm px-7 py-3.5 rounded-xl transition-opacity hover:opacity-85"
                 style={{ background: "var(--blue)", color: "#050e1e", boxShadow: "0 0 24px rgba(56,189,248,0.4)" }}
               >

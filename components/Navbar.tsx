@@ -49,11 +49,11 @@ export default function Navbar() {
 
         {/* CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href="/dashboard"
+          <Link href="/login"
             className="text-sm transition-colors hover:text-[var(--blue)]"
             style={{ color: "var(--ink-2)" }}
           >เข้าสู่ระบบ</Link>
-          <Link href="/dashboard"
+          <Link href="/login"
             className="text-sm font-bold px-4 py-2 rounded-lg transition-opacity hover:opacity-85"
             style={{ background: "var(--blue)", color: "#050e1e" }}
           >เริ่มฟรี</Link>
@@ -77,7 +77,7 @@ export default function Navbar() {
             <a key={l.href} href={l.href} onClick={() => setOpen(false)}
               className="text-sm" style={{ color: "var(--ink-2)" }}>{l.label}</a>
           ))}
-          <Link href="/dashboard"
+          <Link href="/login"
             className="text-sm font-bold text-center py-2.5 rounded-lg mt-1"
             style={{ background: "var(--blue)", color: "#050e1e" }}
           >เริ่มเรียนฟรี</Link>

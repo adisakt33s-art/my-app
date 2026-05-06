@@ -1,4 +1,5 @@
 "use client";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import Ci from "@/components/Ci";
 
@@ -41,8 +42,16 @@ const T = {
 };
 
 export default function Dashboard() {
+  const { user, isLoaded } = useUser();
+  // Get display name: firstName → username → email prefix → fallback
+  const name = user?.firstName
+    || user?.username
+    || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0]
+    || "ผู้เรียน";
+  const initial = (name[0] || "?").toUpperCase();
+  if (!isLoaded) return null; // Middleware already guards; this prevents flash
   return (
-    <div style={{ minHeight: "100vh", background: T.bg, color: T.white, fontFamily: "var(--font-geist-sans), system-ui, sans-serif", display: "flex" }}>
+    <div style={{ minHeight: "100vh", background: T.bg, color: T.white, fontFamily: "'LINESeedSansTH', system-ui, sans-serif", display: "flex" }}>
 
       {/* ── Sidebar ──────────────────────────────── */}
       <aside style={{
@@ -81,9 +90,9 @@ export default function Dashboard() {
             background: `linear-gradient(135deg, ${T.blue}, ${T.green})`,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 12, fontWeight: 700, color: "#050e1e",
-          }}>ภ</div>
+          }}>{initial}</div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: T.white }}>ภูมิ</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.white }}>{name}</div>
             <div style={{ fontSize: 11, color: T.muted }}>B1 · Intermediate</div>
           </div>
         </div>
@@ -103,7 +112,7 @@ export default function Dashboard() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Ci size={32} />
             <div>
-              <span style={{ fontSize: 15, fontWeight: 700, color: T.white }}>สวัสดี ภูมิ!</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: T.white }}>สวัสดี {name}!</span>
               <span style={{ fontSize: 12, color: T.muted, marginLeft: 8 }}>วันศุกร์ 2 พ.ค. 2026</span>
             </div>
           </div>
@@ -118,7 +127,7 @@ export default function Dashboard() {
               background: `linear-gradient(135deg, ${T.blue}, ${T.green})`,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 12, fontWeight: 700, color: "#050e1e", cursor: "pointer",
-            }}>ภ</div>
+            }}>{initial}</div>
           </div>
         </div>
 

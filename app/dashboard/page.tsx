@@ -1,25 +1,21 @@
 "use client";
 import { useUser } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Ci from "@/components/Ci";
+import { getScores, type UserScores } from "@/lib/supabase";
+import { levelFromScore } from "@/lib/grammar-questions";
 
 // ── Data ───────────────────────────────────────────────────────
-const skills = [
-  { label: "Grammar",    score: 0, col: "#38bdf8" },
-  { label: "Speaking",   score: 0, col: "#22d3a0" },
-  { label: "Listening",  score: 0, col: "#38bdf8" },
-  { label: "Vocabulary", score: 0, col: "#22d3a0" },
-];
-
 const todayPlan = [
-  { icon: "📝", title: "Present Perfect",    type: "Grammar",    xp: 30, duration: "10 min", done: false },
-  { icon: "📚", title: "Business Vocab #12", type: "Vocabulary", xp: 20, duration: "5 min",  done: false },
-  { icon: "🎧", title: "Interview Podcast",  type: "Listening",  xp: 40, duration: "8 min",  done: false },
+  { icon: "📝", title: "Present Perfect",    type: "Grammar",    xp: 30, duration: "10 min", href: "/dashboard/grammar" },
+  { icon: "📚", title: "Business Vocab #12", type: "Vocabulary", xp: 20, duration: "5 min",  href: "/dashboard" },
+  { icon: "🎧", title: "Interview Podcast",  type: "Listening",  xp: 40, duration: "8 min",  href: "/dashboard" },
 ];
 
 const navItems = [
   { icon: "⊞",  label: "Dashboard",   href: "/dashboard",         active: true  },
-  { icon: "▶",  label: "Learn",       href: "/dashboard" },
+  { icon: "▶",  label: "Learn",       href: "/dashboard/grammar" },
   { icon: "◈",  label: "AI Tutor",    href: "/dashboard" },
   { icon: "◎",  label: "Missions",    href: "/dashboard" },
   { icon: "▲",  label: "Leaderboard", href: "/dashboard" },
@@ -49,6 +45,22 @@ export default function Dashboard() {
     || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0]
     || "ผู้เรียน";
   const initial = (name[0] || "?").toUpperCase();
+
+  const [scores, setScores] = useState<UserScores>({
+    user_id: "", grammar: 0, vocabulary: 0, listening: 0, speaking: 0,
+  });
+  useEffect(() => {
+    if (user?.id) getScores(user.id).then(setScores);
+  }, [user?.id]);
+
+  const skills = [
+    { label: "Grammar",    score: scores.grammar,    col: "#38bdf8", href: "/dashboard/grammar" },
+    { label: "Speaking",   score: scores.speaking,   col: "#22d3a0", href: "/dashboard" },
+    { label: "Listening",  score: scores.listening,  col: "#38bdf8", href: "/dashboard" },
+    { label: "Vocabulary", score: scores.vocabulary, col: "#22d3a0", href: "/dashboard" },
+  ];
+  const grammarLevel = levelFromScore(scores.grammar);
+
   if (!isLoaded) return null;
 
   const today = new Date();
@@ -194,12 +206,15 @@ export default function Dashboard() {
                 <div style={{ fontSize: 11, color: T.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>แผนวันนี้</div>
                 <div style={{ borderRadius: 14, overflow: "hidden", border: `1px solid ${T.border}` }}>
                   {todayPlan.map((item, i) => (
-                    <div key={item.title} style={{
+                    <Link key={item.title} href={item.href} style={{
                       display: "flex", alignItems: "center", gap: 14,
                       padding: "14px 18px", background: T.surface,
                       borderTop: i > 0 ? `1px solid ${T.border}` : "none",
-                      cursor: "pointer", transition: "background 0.15s",
-                    }}>
+                      cursor: "pointer", transition: "background 0.15s", textDecoration: "none",
+                    }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = T.surface2)}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = T.surface)}
+                    >
                       <span style={{ fontSize: 20 }}>{item.icon}</span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 14, fontWeight: 600, color: T.white }}>{item.title}</div>
@@ -207,9 +222,9 @@ export default function Dashboard() {
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: T.green }}>+{item.xp} XP</div>
-                        <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>เริ่ม →</div>
+                        <div style={{ fontSize: 11, color: T.blue, marginTop: 2 }}>เริ่ม →</div>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -219,7 +234,10 @@ export default function Dashboard() {
                 <div style={{ fontSize: 11, color: T.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Skill Scores</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: T.border, borderRadius: 14, overflow: "hidden", border: `1px solid ${T.border}` }}>
                   {skills.map((s) => (
-                    <div key={s.label} style={{ background: T.surface, padding: "14px 16px" }}>
+                    <Link key={s.label} href={s.href} style={{ background: T.surface, padding: "14px 16px", textDecoration: "none", transition: "background 0.15s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = T.surface2)}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = T.surface)}
+                    >
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                         <span style={{ fontSize: 13, color: T.muted }}>{s.label}</span>
                         <span style={{ fontSize: 18, fontWeight: 900, color: s.col, fontVariantNumeric: "tabular-nums" }}>{s.score}</span>
@@ -228,9 +246,10 @@ export default function Dashboard() {
                         <div style={{
                           height: "100%", width: `${s.score}%`, borderRadius: 99,
                           background: s.col, boxShadow: `0 0 8px ${s.col}80`,
+                          transition: "width 0.6s cubic-bezier(0.22,1,0.36,1)",
                         }} />
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>

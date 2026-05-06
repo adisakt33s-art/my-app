@@ -5,25 +5,26 @@ import Ci from "@/components/Ci";
 
 // ── Data ───────────────────────────────────────────────────────
 const skills = [
-  { label: "Grammar",    score: 72, col: "#38bdf8" },
-  { label: "Speaking",   score: 55, col: "#22d3a0" },
-  { label: "Listening",  score: 81, col: "#38bdf8" },
-  { label: "Vocabulary", score: 68, col: "#22d3a0" },
+  { label: "Grammar",    score: 0, col: "#38bdf8" },
+  { label: "Speaking",   score: 0, col: "#22d3a0" },
+  { label: "Listening",  score: 0, col: "#38bdf8" },
+  { label: "Vocabulary", score: 0, col: "#22d3a0" },
 ];
 
 const todayPlan = [
-  { icon: "📝", title: "Present Perfect",   type: "Grammar",    xp: 30, duration: "10 min", done: true  },
+  { icon: "📝", title: "Present Perfect",    type: "Grammar",    xp: 30, duration: "10 min", done: false },
   { icon: "📚", title: "Business Vocab #12", type: "Vocabulary", xp: 20, duration: "5 min",  done: false },
   { icon: "🎧", title: "Interview Podcast",  type: "Listening",  xp: 40, duration: "8 min",  done: false },
 ];
 
 const navItems = [
-  { icon: "⊞",  label: "Dashboard",   href: "/dashboard", active: true },
+  { icon: "⊞",  label: "Dashboard",   href: "/dashboard",         active: true  },
   { icon: "▶",  label: "Learn",       href: "/dashboard" },
   { icon: "◈",  label: "AI Tutor",    href: "/dashboard" },
   { icon: "◎",  label: "Missions",    href: "/dashboard" },
   { icon: "▲",  label: "Leaderboard", href: "/dashboard" },
   { icon: "◐",  label: "Progress",    href: "/dashboard" },
+  { icon: "👤", label: "โปรไฟล์",     href: "/dashboard/profile" },
 ];
 
 // ── Theme tokens ──────────────────────────────────────────────
@@ -43,13 +44,18 @@ const T = {
 
 export default function Dashboard() {
   const { user, isLoaded } = useUser();
-  // Get display name: firstName → username → email prefix → fallback
   const name = user?.firstName
     || user?.username
     || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0]
     || "ผู้เรียน";
   const initial = (name[0] || "?").toUpperCase();
-  if (!isLoaded) return null; // Middleware already guards; this prevents flash
+  if (!isLoaded) return null;
+
+  const today = new Date();
+  const dayNames = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
+  const monthNames = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+  const dateStr = `วัน${dayNames[today.getDay()]} ${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear() + 543}`;
+
   return (
     <div style={{ minHeight: "100vh", background: T.bg, color: T.white, fontFamily: "'LINESeedSansTH', system-ui, sans-serif", display: "flex" }}>
 
@@ -84,7 +90,11 @@ export default function Dashboard() {
         </nav>
 
         {/* User */}
-        <div style={{ padding: "14px 16px", borderTop: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 10 }}>
+        <Link href="/dashboard/profile" style={{
+          padding: "14px 16px", borderTop: `1px solid ${T.border}`,
+          display: "flex", alignItems: "center", gap: 10, textDecoration: "none",
+          cursor: "pointer",
+        }}>
           <div style={{
             width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
             background: `linear-gradient(135deg, ${T.blue}, ${T.green})`,
@@ -95,7 +105,7 @@ export default function Dashboard() {
             <div style={{ fontSize: 13, fontWeight: 600, color: T.white }}>{name}</div>
             <div style={{ fontSize: 11, color: T.muted }}>B1 · Intermediate</div>
           </div>
-        </div>
+        </Link>
       </aside>
 
       {/* ── Main ─────────────────────────────────── */}
@@ -113,7 +123,7 @@ export default function Dashboard() {
             <Ci size={32} />
             <div>
               <span style={{ fontSize: 15, fontWeight: 700, color: T.white }}>สวัสดี {name}!</span>
-              <span style={{ fontSize: 12, color: T.muted, marginLeft: 8 }}>วันศุกร์ 2 พ.ค. 2026</span>
+              <span style={{ fontSize: 12, color: T.muted, marginLeft: 8 }}>{dateStr}</span>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -121,13 +131,15 @@ export default function Dashboard() {
               display: "flex", alignItems: "center", gap: 6, padding: "5px 12px",
               borderRadius: 20, background: "rgba(250,140,0,0.1)",
               border: "1px solid rgba(250,140,0,0.25)", fontSize: 13, fontWeight: 600, color: "#fa8c00",
-            }}>🔥 7 วัน</div>
-            <div style={{
-              width: 32, height: 32, borderRadius: "50%",
-              background: `linear-gradient(135deg, ${T.blue}, ${T.green})`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 700, color: "#050e1e", cursor: "pointer",
-            }}>{initial}</div>
+            }}>🔥 0 วัน</div>
+            <Link href="/dashboard/profile">
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%",
+                background: `linear-gradient(135deg, ${T.blue}, ${T.green})`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 12, fontWeight: 700, color: "#050e1e", cursor: "pointer",
+              }}>{initial}</div>
+            </Link>
           </div>
         </div>
 
@@ -140,16 +152,16 @@ export default function Dashboard() {
             display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap",
           }}>
             <div>
-              <div style={{ fontSize: 11, color: T.muted, marginBottom: 2, letterSpacing: 1, textTransform: "uppercase" }}>Level 12 — Scholar</div>
-              <div style={{ fontSize: 32, fontWeight: 900, color: T.blue, lineHeight: 1.1, letterSpacing: -1 }}>2,340 XP</div>
+              <div style={{ fontSize: 11, color: T.muted, marginBottom: 2, letterSpacing: 1, textTransform: "uppercase" }}>Level 1 — Beginner</div>
+              <div style={{ fontSize: 32, fontWeight: 900, color: T.blue, lineHeight: 1.1, letterSpacing: -1 }}>0 XP</div>
             </div>
             <div style={{ flex: 1, minWidth: 160 }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: T.muted, marginBottom: 6 }}>
-                <span>2,340</span><span>2,500 → Lv.13</span>
+                <span>0</span><span>500 → Lv.2</span>
               </div>
               <div style={{ height: 6, borderRadius: 99, background: T.border, overflow: "hidden" }}>
                 <div style={{
-                  height: "100%", width: "68%", borderRadius: 99,
+                  height: "100%", width: "0%", borderRadius: 99,
                   background: `linear-gradient(90deg, ${T.blue}, ${T.green})`,
                   boxShadow: `0 0 10px ${T.blue}80`,
                 }} />
@@ -158,17 +170,15 @@ export default function Dashboard() {
             {/* Badges */}
             <div style={{ display: "flex", gap: 8 }}>
               {[
-                { icon: "🔥", label: "7-day Streak",  glow: "#fa8c00" },
-                { icon: "📝", label: "Grammar 101",   glow: T.blue },
-                { icon: "🎯", label: "First Quiz",    glow: T.green },
-              ].map((b) => (
-                <div key={b.label} title={b.label} style={{
+                { icon: "🔒", label: "ยังไม่ได้รับ" },
+                { icon: "🔒", label: "ยังไม่ได้รับ" },
+                { icon: "🔒", label: "ยังไม่ได้รับ" },
+              ].map((b, i) => (
+                <div key={i} title={b.label} style={{
                   width: 38, height: 38, borderRadius: "50%",
-                  background: T.surface2, border: `1px solid ${T.borderHi}`,
+                  background: T.surface2, border: `1px solid ${T.border}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 18, cursor: "pointer",
-                  boxShadow: `0 0 8px ${b.glow}40`,
-                  transition: "box-shadow 0.2s",
+                  fontSize: 18, cursor: "pointer", opacity: 0.4,
                 }}>{b.icon}</div>
               ))}
             </div>
@@ -186,20 +196,18 @@ export default function Dashboard() {
                   {todayPlan.map((item, i) => (
                     <div key={item.title} style={{
                       display: "flex", alignItems: "center", gap: 14,
-                      padding: "14px 18px", background: item.done ? T.surface : T.surface,
+                      padding: "14px 18px", background: T.surface,
                       borderTop: i > 0 ? `1px solid ${T.border}` : "none",
-                      opacity: item.done ? 0.4 : 1,
-                      cursor: item.done ? "default" : "pointer",
-                      transition: "background 0.15s",
+                      cursor: "pointer", transition: "background 0.15s",
                     }}>
-                      <span style={{ fontSize: 20 }}>{item.done ? "✅" : item.icon}</span>
+                      <span style={{ fontSize: 20 }}>{item.icon}</span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 14, fontWeight: 600, color: T.white }}>{item.title}</div>
                         <div style={{ fontSize: 12, color: T.muted }}>{item.type} · {item.duration}</div>
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: T.green }}>+{item.xp} XP</div>
-                        {!item.done && <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>เริ่ม →</div>}
+                        <div style={{ fontSize: 11, color: T.muted, marginTop: 2 }}>เริ่ม →</div>
                       </div>
                     </div>
                   ))}
@@ -234,8 +242,7 @@ export default function Dashboard() {
               {/* AI Tutor / Ci */}
               <div style={{
                 borderRadius: 16, padding: "22px 20px", textAlign: "center",
-                background: T.surface,
-                border: `1px solid ${T.borderHi}`,
+                background: T.surface, border: `1px solid ${T.borderHi}`,
                 boxShadow: `inset 0 0 30px rgba(56,189,248,0.06)`,
               }}>
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
@@ -254,19 +261,20 @@ export default function Dashboard() {
 
               {/* Streak */}
               <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 16, padding: "18px 16px" }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: T.white, marginBottom: 14 }}>🔥 พฤษภาคม</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: T.white, marginBottom: 14 }}>
+                  🔥 {monthNames[today.getMonth()].replace(".", "")} {today.getFullYear() + 543}
+                </div>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
                   {Array.from({ length: 31 }, (_, i) => {
                     const day = i + 1;
-                    const active = day <= 7;
-                    const today = day === 5;
+                    const isToday = day === today.getDate();
                     return (
                       <div key={day} style={{
                         aspectRatio: "1", borderRadius: 6, fontSize: 10, fontWeight: 600,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        background: today ? T.blue : active ? `rgba(56,189,248,0.15)` : T.surface2,
-                        color: today ? "#050e1e" : active ? T.blue : T.muted,
-                        boxShadow: today ? T.glowBlue : "none",
+                        background: isToday ? T.blue : T.surface2,
+                        color: isToday ? "#050e1e" : T.muted,
+                        boxShadow: isToday ? T.glowBlue : "none",
                       }}>{day}</div>
                     );
                   })}
@@ -280,7 +288,7 @@ export default function Dashboard() {
                 </div>
                 {[
                   { icon: "🎤", label: "Speaking Practice", sub: "Job interview" },
-                  { icon: "📚", label: "Vocab Review",      sub: "12 cards due" },
+                  { icon: "📚", label: "Vocab Review",      sub: "0 cards due" },
                   { icon: "🧪", label: "Placement Test",    sub: "อัปเดตระดับ" },
                 ].map((q, i) => (
                   <Link key={q.label} href="/dashboard" style={{

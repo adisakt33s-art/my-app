@@ -120,7 +120,7 @@ export default function Dashboard() {
             }}>{initial}</div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: T.white }}>{name}</div>
-             <div style={{ fontSize: 11, color: T.muted }}>Lv.{String(grammarLevel)}</div>           </div>
+             <div style={{ fontSize: 11, color: T.muted }}>Lv.1</div>
           </Link>
         </aside>
       )}

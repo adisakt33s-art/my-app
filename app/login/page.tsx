@@ -118,42 +118,45 @@ function Field({ label, type = "text", placeholder, value, onChange, error, auto
   );
 }
 
-// ── OTP boxes ─────────────────────────────────────────────────
+// ── OTP input ─────────────────────────────────────────────────
 function OtpInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const digits = Array.from({ length: 6 }, (_, i) => value[i] || "");
-  function handleKey(i: number, e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Backspace" && !digits[i] && i > 0)
-      (document.getElementById(`otp-${i - 1}`) as HTMLInputElement)?.focus();
-  }
-  function handleChange(i: number, v: string) {
-    if (!/^\d*$/.test(v)) return;
-    const next = digits.map((d, idx) => (idx === i ? v.slice(-1) : d)).join("");
-    onChange(next);
-    if (v && i < 5) (document.getElementById(`otp-${i + 1}`) as HTMLInputElement)?.focus();
-  }
-  function handlePaste(e: React.ClipboardEvent) {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    onChange(pasted);
-    const next = Math.min(pasted.length, 5);
-    (document.getElementById(`otp-${next}`) as HTMLInputElement)?.focus();
-  }
+  const [focused, setFocused] = useState(false);
   return (
-    <div style={{ display: "flex", gap: 8 }}>
-      {digits.map((d, i) => (
-        <input key={i} id={`otp-${i}`} type="text" inputMode="numeric" maxLength={1} value={d}
-          onChange={(e) => handleChange(i, e.target.value)}
-          onKeyDown={(e) => handleKey(i, e)} onPaste={handlePaste}
-          style={{
-            flex: 1, aspectRatio: "1", textAlign: "center",
-            fontSize: 20, fontWeight: 800, color: T.white,
-            background: T.surface2, border: `1px solid ${d ? T.blue : T.border}`,
-            borderRadius: 10, outline: "none",
-            boxShadow: d ? `0 0 10px ${T.blue}30` : "none",
-            transition: "border-color 0.15s",
-          }}
-        />
-      ))}
+    <div>
+      <input
+        type="text"
+        inputMode="numeric"
+        maxLength={6}
+        value={value}
+        autoComplete="one-time-code"
+        placeholder="000000"
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
+        onPaste={(e) => {
+          e.preventDefault();
+          onChange(e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6));
+        }}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        style={{
+          width: "100%", textAlign: "center",
+          fontSize: 26, fontWeight: 900, letterSpacing: "0.4em",
+          padding: "15px 0", background: T.surface2,
+          border: `1px solid ${focused ? T.blue : value.length === 6 ? T.blue : T.border}`,
+          borderRadius: 12, color: T.white, outline: "none",
+          transition: "border-color 0.15s, box-shadow 0.15s",
+          boxShadow: focused ? `0 0 0 3px ${T.blue}18` : "none",
+        }}
+      />
+      <div style={{ display: "flex", justifyContent: "center", gap: 7, marginTop: 10 }}>
+        {Array.from({ length: 6 }, (_, i) => (
+          <div key={i} style={{
+            width: 7, height: 7, borderRadius: "50%",
+            background: i < value.length ? T.blue : T.border,
+            transition: "background 0.12s",
+            boxShadow: i < value.length ? `0 0 6px ${T.blue}80` : "none",
+          }} />
+        ))}
+      </div>
     </div>
   );
 }

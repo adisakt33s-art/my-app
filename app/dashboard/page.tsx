@@ -1,10 +1,11 @@
 "use client";
-import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Ci from "@/components/Ci";
 import { getScores, type UserScores } from "@/lib/supabase";
 import { levelFromScore } from "@/lib/grammar-questions";
+import { getBrowserClient } from "@/lib/supabase-browser";
+import type { User } from "@supabase/supabase-js";
 
 const todayPlan = [
   { icon: "📝", title: "Present Perfect",    type: "Grammar",    xp: 30, duration: "10 min", href: "/dashboard/grammar" },
@@ -45,12 +46,25 @@ const T = {
 };
 
 export default function Dashboard() {
-  const { user, isLoaded } = useUser();
-  const name = user?.firstName || user?.username || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "ผู้เรียน";
-  const initial = (name[0] || "?").toUpperCase();
-
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [scores, setScores] = useState<UserScores>({ user_id: "", grammar: 0, vocabulary: 0, listening: 0, speaking: 0 });
   const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const supabase = getBrowserClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      setIsLoaded(true);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const name = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "ผู้เรียน";
+  const initial = (name[0] || "?").toUpperCase();
 
   useEffect(() => {
     if (user?.id) getScores(user.id).then(setScores);

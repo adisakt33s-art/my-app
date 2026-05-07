@@ -1,8 +1,9 @@
 "use client";
-import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getProfile, saveProfile, getScores, type UserProfile, type UserScores } from "@/lib/supabase";
+import { getBrowserClient } from "@/lib/supabase-browser";
+import type { User } from "@supabase/supabase-js";
 
 const T = {
   bg: "#060f20", surface: "#0c1830", surface2: "#102040",
@@ -22,11 +23,8 @@ const navItems = [
 ];
 
 export default function ProfilePage() {
-  const { user, isLoaded } = useUser();
-  const name = user?.firstName || user?.username || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "ผู้เรียน";
-  const initial = (name[0] || "?").toUpperCase();
-  const email = user?.emailAddresses?.[0]?.emailAddress || "-";
-
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [profile, setProfile] = useState<UserProfile>({ user_id: "", xp: 0, level: 1, streak: 0, lessons_completed: 0 });
   const [scores, setScores] = useState<UserScores>({ user_id: "", grammar: 0, vocabulary: 0, listening: 0, speaking: 0 });
   const [phone, setPhone] = useState("");
@@ -34,6 +32,22 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = getBrowserClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      setIsLoaded(true);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const name = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "ผู้เรียน";
+  const initial = (name[0] || "?").toUpperCase();
+  const email = user?.email || "-";
 
   useEffect(() => {
     if (!user) return;
@@ -54,6 +68,12 @@ export default function ProfilePage() {
     setEditing(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleSignOut = async () => {
+    const supabase = getBrowserClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
   };
 
   if (!isLoaded || loading) return (
@@ -142,6 +162,9 @@ export default function ProfilePage() {
                 ) : (
                   <button onClick={() => setEditing(true)} style={{ flex: 1, padding: "11px 0", borderRadius: 10, border: `1px solid ${T.borderHi}`, background: "transparent", color: T.blue, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>✏️ แก้ไขข้อมูล</button>
                 )}
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <button onClick={handleSignOut} style={{ width: "100%", padding: "11px 0", borderRadius: 10, border: `1px solid rgba(248,113,113,0.35)`, background: "rgba(248,113,113,0.08)", color: "#f87171", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>ออกจากระบบ</button>
               </div>
               {saved && <div style={{ textAlign: "center", fontSize: 13, color: T.green }}>✅ บันทึกลง Supabase เรียบร้อยแล้ว</div>}
             </div>

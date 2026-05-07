@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import { getBrowserClient } from "@/lib/supabase-browser";
+import type { User } from "@supabase/supabase-js";
 import Ci from "@/components/Ci";
 import {
   getQuestions, getTopicQuestionCount, levelFromScore, xpFromScore,
@@ -238,8 +239,18 @@ function SentenceReorderExercise({ q, onAnswer }: { q: SentenceReorderQ; onAnswe
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function GrammarPage() {
-  const { user, isLoaded } = useUser();
-  const name    = user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "ผู้เรียน";
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const supabase = getBrowserClient();
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const name    = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "ผู้เรียน";
   const initial = (name[0] || "?").toUpperCase();
   const userId  = user?.id ?? "";
 
@@ -289,8 +300,6 @@ export default function GrammarPage() {
       setMode("results");
     }
   }
-
-  if (!isLoaded) return null;
 
   const q        = questions[qIndex];
   const total    = questions.length;

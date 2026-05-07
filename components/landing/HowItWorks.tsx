@@ -74,7 +74,7 @@ export default function HowItWorks() {
                   <span key={i} className="text-xs" style={{ color: "var(--green)" }}>★</span>
                 ))}
               </div>
-              <p className="text-sm mb-5 leading-relaxed" style={{ color: "var(--ink-2)" }}>"{t.text}"</p>
+              <p className="text-sm mb-5 leading-relaxed" style={{ color: "var(--ink-2)" }}>&quot;{t.text}&quot;</p>
               <p className="text-sm font-bold" style={{ color: "var(--ink)" }}>{t.name}</p>
               <p className="text-xs" style={{ color: "var(--ink-3)" }}>{t.role}</p>
             </div>

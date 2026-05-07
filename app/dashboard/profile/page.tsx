@@ -1,9 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { signOut, useSession } from "next-auth/react";
 import { getProfile, saveProfile, getScores, type UserProfile, type UserScores } from "@/lib/supabase";
-import { getBrowserClient } from "@/lib/supabase-browser";
-import type { User } from "@supabase/supabase-js";
 
 const T = {
   bg: "#060f20", surface: "#0c1830", surface2: "#102040",
@@ -23,8 +22,7 @@ const navItems = [
 ];
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { data: session, status } = useSession();
   const [profile, setProfile] = useState<UserProfile>({ user_id: "", xp: 0, level: 1, streak: 0, lessons_completed: 0 });
   const [scores, setScores] = useState<UserScores>({ user_id: "", grammar: 0, vocabulary: 0, listening: 0, speaking: 0 });
   const [phone, setPhone] = useState("");
@@ -33,19 +31,8 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const supabase = getBrowserClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-      setIsLoaded(true);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const name = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "ผู้เรียน";
+  const user = session?.user;
+  const name = user?.name || user?.email?.split("@")[0] || "ผู้เรียน";
   const initial = (name[0] || "?").toUpperCase();
   const email = user?.email || "-";
 
@@ -71,12 +58,10 @@ export default function ProfilePage() {
   };
 
   const handleSignOut = async () => {
-    const supabase = getBrowserClient();
-    await supabase.auth.signOut();
-    window.location.href = "/login";
+    await signOut({ callbackUrl: "/login" });
   };
 
-  if (!isLoaded || loading) return (
+  if (status === "loading" || loading) return (
     <div style={{ minHeight: "100vh", background: T.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ color: T.muted, fontSize: 14 }}>กำลังโหลด...</div>
     </div>

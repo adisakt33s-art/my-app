@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Ci from "@/components/Ci";
@@ -81,17 +81,12 @@ type Step = "email" | "sent" | "newpass" | "done";
 function ForgotPasswordInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [step,    setStep]    = useState<Step>("email");
+  const [step,    setStep]    = useState<Step>(() => searchParams.get("step") === "newpass" ? "newpass" : "email");
   const [email,   setEmail]   = useState("");
   const [newPass, setNewPass] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors,  setErrors]  = useState<Record<string, string>>({});
-
-  // Detect redirect back from email link (recovery flow)
-  useEffect(() => {
-    if (searchParams.get("step") === "newpass") setStep("newpass");
-  }, [searchParams]);
 
   // Step 1: send reset email
   async function handleEmail(e: React.FormEvent) {

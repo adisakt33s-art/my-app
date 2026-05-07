@@ -1,9 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getBrowserClient } from "@/lib/supabase-browser";
-import type { User } from "@supabase/supabase-js";
-import Ci from "@/components/Ci";
+import { useSession } from "next-auth/react";
 import {
   getQuestions, getTopicQuestionCount, levelFromScore, xpFromScore,
   GRAMMAR_TOPICS,
@@ -40,22 +38,29 @@ const navItems = [
 ];
 
 // ── Explanation card ──────────────────────────────────────────
-function ExplainBox({ feedback, explanationTh, explanation }: {
-  feedback: Feedback; explanationTh: string; explanation: string;
+function ExplainBox({ feedback, explanationTh, explanation, onNext }: {
+  feedback: Feedback; explanationTh: string; explanation: string; onNext?: () => void;
 }) {
   if (!feedback) return null;
   const ok = feedback === "correct";
   return (
     <div style={{
-      padding: "14px 16px", borderRadius: 12, lineHeight: 1.7,
+      padding: "16px 16px", borderRadius: 12, lineHeight: 1.7,
       background: ok ? "rgba(34,211,160,0.08)" : "rgba(248,113,113,0.08)",
       border: `1px solid ${ok ? T.green : T.error}`,
     }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: ok ? T.green : T.error, marginBottom: 6 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: ok ? T.green : T.error, marginBottom: 8 }}>
         {ok ? "✓ ถูกต้อง!" : "✗ ยังไม่ถูกต้อง"}
       </div>
-      <div style={{ fontSize: 13, color: T.white, marginBottom: 4 }}>{explanationTh}</div>
-      <div style={{ fontSize: 11, color: T.muted, fontStyle: "italic" }}>{explanation}</div>
+      <div style={{ fontSize: 14, color: T.white, marginBottom: 6, lineHeight: 1.8 }}>{explanationTh}</div>
+      <div style={{ fontSize: 12, color: T.muted, fontStyle: "italic", marginBottom: onNext ? 14 : 0 }}>{explanation}</div>
+      {!ok && onNext && (
+        <button onClick={onNext} style={{
+          width: "100%", padding: "11px 0", borderRadius: 10, fontSize: 14, fontWeight: 700,
+          background: T.blue, border: "none", color: "#050e1e", cursor: "pointer",
+          boxShadow: `0 0 16px ${T.blue}50`,
+        }}>ข้อถัดไป →</button>
+      )}
     </div>
   );
 }
@@ -85,7 +90,8 @@ function FillBlankExercise({ q, onAnswer }: { q: FillBlankQ; onAnswer: (correct:
     setChosen(opt);
     const ok = opt === q.answer;
     setFeedback(ok ? "correct" : "wrong");
-    setTimeout(() => onAnswer(ok), 1600);
+    if (ok) setTimeout(() => onAnswer(true), 1600);
+    // wrong: wait for "Next" button
   }
 
   const parts = q.sentence.split("___");
@@ -117,7 +123,7 @@ function FillBlankExercise({ q, onAnswer }: { q: FillBlankQ; onAnswer: (correct:
           );
         })}
       </div>
-      <ExplainBox feedback={feedback} explanationTh={`${feedback === "wrong" ? `✗ คำตอบที่ถูก: "${q.answer}" · ` : ""}${q.explanationTh}`} explanation={q.explanation} />
+      <ExplainBox feedback={feedback} explanationTh={`${feedback === "wrong" ? `✗ คำตอบที่ถูก: "${q.answer}" · ` : ""}${q.explanationTh}`} explanation={q.explanation} onNext={feedback === "wrong" ? () => onAnswer(false) : undefined} />
     </div>
   );
 }
@@ -132,7 +138,8 @@ function MultipleChoiceExercise({ q, onAnswer }: { q: MultipleChoiceQ; onAnswer:
     setChosen(idx);
     const ok = idx === q.answer;
     setFeedback(ok ? "correct" : "wrong");
-    setTimeout(() => onAnswer(ok), 1600);
+    if (ok) setTimeout(() => onAnswer(true), 1600);
+    // wrong: wait for "Next" button
   }
 
   return (
@@ -169,6 +176,7 @@ function MultipleChoiceExercise({ q, onAnswer }: { q: MultipleChoiceQ; onAnswer:
         feedback={feedback}
         explanationTh={`${feedback === "wrong" ? `✗ คำตอบที่ถูก: "${q.options[q.answer]}" · ` : ""}${q.explanationTh}`}
         explanation={q.explanation}
+        onNext={feedback === "wrong" ? () => onAnswer(false) : undefined}
       />
     </div>
   );
@@ -195,7 +203,8 @@ function SentenceReorderExercise({ q, onAnswer }: { q: SentenceReorderQ; onAnswe
     if (built.length === 0 || feedback) return;
     const ok = built.join(" ") === q.answer.join(" ");
     setFeedback(ok ? "correct" : "wrong");
-    setTimeout(() => onAnswer(ok), 1800);
+    if (ok) setTimeout(() => onAnswer(true), 1800);
+    // wrong: wait for "Next" button
   }
 
   return (
@@ -232,6 +241,7 @@ function SentenceReorderExercise({ q, onAnswer }: { q: SentenceReorderQ; onAnswe
         feedback={feedback}
         explanationTh={`${feedback === "wrong" ? `✗ คำตอบที่ถูก: "${q.answer.join(" ")}" · ` : ""}${q.explanationTh}`}
         explanation={q.explanation}
+        onNext={feedback === "wrong" ? () => onAnswer(false) : undefined}
       />
     </div>
   );
@@ -239,18 +249,9 @@ function SentenceReorderExercise({ q, onAnswer }: { q: SentenceReorderQ; onAnswe
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function GrammarPage() {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const supabase = getBrowserClient();
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const name    = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "ผู้เรียน";
+  const { data: session } = useSession();
+  const user = session?.user;
+  const name    = user?.name || user?.email?.split("@")[0] || "ผู้เรียน";
   const initial = (name[0] || "?").toUpperCase();
   const userId  = user?.id ?? "";
 

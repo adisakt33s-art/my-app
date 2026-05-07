@@ -120,10 +120,12 @@ export default function Dashboard() {
             }}>{initial}</div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: T.white }}>{name}</div>
-            <div style={{ fontSize: 11, color: T.muted }}>Lv.1</div>
-      </div>
-    </Link>
-  </aside>    
+              <div style={{ fontSize: 11, color: T.muted }}>Lv.1</div>
+            </div>
+          </Link>
+        </aside>
+      )}
+
       {/* ── Main ── */}
       <main style={{
         flex: 1,

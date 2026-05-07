@@ -122,14 +122,14 @@ function Field({ label, type = "text", placeholder, value, onChange, error, auto
 function OtpInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [focused, setFocused] = useState(false);
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
       <input
         type="text"
         inputMode="numeric"
         maxLength={6}
         value={value}
         autoComplete="one-time-code"
-        placeholder="000000"
+        placeholder="— — — — — —"
         onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
         onPaste={(e) => {
           e.preventDefault();
@@ -138,22 +138,22 @@ function OtpInput({ value, onChange }: { value: string; onChange: (v: string) =>
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         style={{
-          width: "100%", textAlign: "center",
-          fontSize: 26, fontWeight: 900, letterSpacing: "0.4em",
-          padding: "15px 0", background: T.surface2,
+          width: 220, textAlign: "center",
+          fontSize: 22, fontWeight: 800, letterSpacing: "0.35em",
+          padding: "12px 16px", background: T.surface2,
           border: `1px solid ${focused ? T.blue : value.length === 6 ? T.blue : T.border}`,
           borderRadius: 12, color: T.white, outline: "none",
           transition: "border-color 0.15s, box-shadow 0.15s",
           boxShadow: focused ? `0 0 0 3px ${T.blue}18` : "none",
         }}
       />
-      <div style={{ display: "flex", justifyContent: "center", gap: 7, marginTop: 10 }}>
+      <div style={{ display: "flex", gap: 6 }}>
         {Array.from({ length: 6 }, (_, i) => (
           <div key={i} style={{
-            width: 7, height: 7, borderRadius: "50%",
+            width: 6, height: 6, borderRadius: "50%",
             background: i < value.length ? T.blue : T.border,
             transition: "background 0.12s",
-            boxShadow: i < value.length ? `0 0 6px ${T.blue}80` : "none",
+            boxShadow: i < value.length ? `0 0 5px ${T.blue}80` : "none",
           }} />
         ))}
       </div>
